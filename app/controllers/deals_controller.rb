@@ -308,6 +308,7 @@ class DealsController < ApplicationController
 
   def find_deal
     @deal = Deal.where(:id => params[:id]).includes([:project, :status, :category]).first
+    render_404 unless @deal
     @project = @deal.project
   rescue ActiveRecord::RecordNotFound
     render_404
