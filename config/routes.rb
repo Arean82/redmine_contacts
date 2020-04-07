@@ -62,7 +62,10 @@
   end
   resources :deals do
     collection do
-      get :bulk_edit, :context_menu, :edit_mails, :preview_email
+      get :bulk_edit
+      get :context_menu
+      get :edit_mails
+      get :preview_email
       post :bulk_edit, :bulk_update, :send_mails, :update_form
       put :update_form
       delete :bulk_destroy
