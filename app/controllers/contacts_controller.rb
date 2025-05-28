@@ -36,6 +36,12 @@ class ContactsController < ApplicationController
   include ApplicationHelper
   include NotesHelper
 
+    # <<<<< Add this method here <<<<<
+  def self.accept_atom_auth(*args)
+    # no operation (do nothing)
+  end
+
+
   def index
     retrieve_crm_query('contact')
     sort_init(@query.sort_criteria.empty? ? [['last_name', 'asc'], ['first_name', 'asc']] : @query.sort_criteria)
