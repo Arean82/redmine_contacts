@@ -27,12 +27,12 @@ module RedmineContacts
             options = args.first || {}
           end
 
+          # Rails 4+ signature fix: pass options as keyword args
           if ActiveRecord::VERSION::MAJOR >= 4
-            # If no scope provided, build scope and options from options hash
             if scope.nil?
               scope, options = build_scope_and_options(options)
             end
-            has_many_without_contacts(name, scope, options, &extension)
+            has_many_without_contacts(name, scope, **options, &extension)
           else
             has_many_without_contacts(name, options, &extension)
           end
@@ -63,13 +63,8 @@ module RedmineContacts
             end
           end
 
-          # Conditions become where in ActiveRecord 4+
           scope_opts[:where] = opts.delete(:conditions) if opts.key?(:conditions)
-
-          # :include becomes :joins
           scope_opts[:joins] = opts.delete(:include) if opts.key?(:include)
-
-          # :uniq becomes :distinct
           scope_opts[:distinct] = opts.delete(:uniq) if opts.key?(:uniq)
 
           [scope_opts, opts]
