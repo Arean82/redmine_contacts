@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
 
+$LOAD_PATH.unshift File.expand_path('lib', __dir__)
+
 requires_redmine_crm :version_or_higher => '0.0.51' rescue raise "\n\033[31mRedmine requires newer redmine_crm gem version.\nPlease update with 'bundle update redmine_crm'.\033[0m"
 
 require 'redmine'
