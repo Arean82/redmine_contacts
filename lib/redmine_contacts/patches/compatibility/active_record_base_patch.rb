@@ -31,6 +31,10 @@ module RedmineContacts
       module InstanceMethods
         def has_many_with_contacts(name, param2 = nil, *param3, &extension)
           return has_many_without_contacts(name, param2, *param3, &extension) if param3 && param3.is_a?(Array) && param3[0] && param3[0][:through]
+
+          scope = nil
+          options = {}
+
           if param2.nil?
             options = {}
           else
@@ -41,9 +45,17 @@ module RedmineContacts
               options = param2
             end
           end
+
           if ActiveRecord::VERSION::MAJOR >= 4
             scope, options = build_scope_and_options(options) if scope.nil?
-            has_many_without_contacts(name, scope, options, &extension)
+
+            if scope
+              # Pass scope as second argument and options as keyword args
+              has_many_without_contacts(name, scope, **options, &extension)
+            else
+              # No scope, pass only options as keyword args
+              has_many_without_contacts(name, **options, &extension)
+            end
           else
             has_many_without_contacts(name, options, &extension)
           end
@@ -54,7 +66,7 @@ module RedmineContacts
 
           unless scope_opts.empty?
             scope = lambda do
-              scope_opts.inject(self) { |result, hash| result.send *hash }
+              scope_opts.inject(self) { |result, hash| result.send(*hash) }
             end
           end
           [defined?(scope) ? scope : nil, opts]
@@ -63,11 +75,11 @@ module RedmineContacts
         def parse_options(opts)
           scope_opts = {}
           [:order, :having, :select, :group, :limit, :offset, :readonly].each do |o|
-            scope_opts[o] = opts.delete o if opts[o]
+            scope_opts[o] = opts.delete(o) if opts[o]
           end
-          scope_opts[:where] = opts.delete :conditions if opts[:conditions]
-          scope_opts[:joins] = opts.delete :include if opts [:include]
-          scope_opts[:distinct] = opts.delete :uniq if opts[:uniq]
+          scope_opts[:where] = opts.delete(:conditions) if opts[:conditions]
+          scope_opts[:joins] = opts.delete(:include) if opts[:include]
+          scope_opts[:distinct] = opts.delete(:uniq) if opts[:uniq]
 
           [scope_opts, opts]
         end
