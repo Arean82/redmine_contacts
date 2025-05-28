@@ -11,9 +11,6 @@ module RedmineContacts
 
       module InstanceMethods
         def has_many_with_contacts(name, *args, &extension)
-          # Separate args into scope and options
-          # Rails has_many(name, scope = nil, **options, &block)
-
           if args.first.is_a?(Proc)
             scope = args.shift
           else
@@ -22,10 +19,8 @@ module RedmineContacts
 
           options = args.first || {}
 
-          # If options contain :through, call original immediately
           return has_many_without_contacts(name, scope, **options, &extension) if options[:through]
 
-          # Convert legacy options to modern style
           scope_opts = {}
           scope_opts[:where]     = options.delete(:conditions) if options[:conditions]
           scope_opts[:joins]     = options.delete(:include) if options[:include]
@@ -36,7 +31,6 @@ module RedmineContacts
           end
 
           if scope_opts.any?
-            # Build scope proc applying the scope options as chained methods
             scope = proc do
               scope_opts.inject(all) do |relation, (method, arg)|
                 if arg.nil? || arg == true || arg == false
@@ -59,6 +53,6 @@ module RedmineContacts
   end
 end
 
-if defined?(ActiveRecord::Base)
+ActiveSupport.on_load(:active_record) do
   ActiveRecord::Base.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
 end
