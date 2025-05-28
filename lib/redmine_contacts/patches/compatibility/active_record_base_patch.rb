@@ -1,22 +1,3 @@
-# This file is a part of Redmine CRM (redmine_contacts) plugin,
-# customer relationship management plugin for Redmine
-#
-# Copyright (C) 2010-2019 RedmineUP
-# http://www.redmineup.com/
-#
-# redmine_contacts is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redmine_contacts is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
-
 module RedmineContacts
   module Patches
     module ActiveRecordBasePatch
@@ -29,57 +10,67 @@ module RedmineContacts
       end
 
       module InstanceMethods
-        def has_many_with_contacts(name, param2 = nil, *param3, &extension)
-          # If param3 has :through option, fallback to original has_many
-          if param3.any? && param3[0].is_a?(Hash) && param3[0][:through]
-            return has_many_without_contacts(name, param2, *param3, &extension)
+        def has_many_with_contacts(name, *args, &extension)
+          # If there is a :through option, call original has_many directly
+          if args.any? && args[0].is_a?(Hash) && args[0][:through]
+            return has_many_without_contacts(name, *args, &extension)
           end
 
+          # Separate scope and options based on argument types
           scope = nil
           options = {}
 
-          if param2.nil?
-            options = {}
-          elsif param2.is_a?(Proc)
-            scope = param2
-            options = param3.empty? ? {} : param3[0]
+          if args.first.is_a?(Proc)
+            scope = args.shift
+            options = args.first || {}
           else
-            options = param2
+            options = args.first || {}
           end
 
           if ActiveRecord::VERSION::MAJOR >= 4
-            scope, options = build_scope_and_options(options) if scope.nil?
-
-            if scope
-              has_many_without_contacts(name, scope, options, &extension)
-            else
-              has_many_without_contacts(name, options, &extension)
+            # If no scope provided, build scope and options from options hash
+            if scope.nil?
+              scope, options = build_scope_and_options(options)
             end
+            has_many_without_contacts(name, scope, options, &extension)
           else
             has_many_without_contacts(name, options, &extension)
           end
         end
 
+        private
+
         def build_scope_and_options(options)
           scope_opts, opts = parse_options(options)
 
+          scope = nil
           unless scope_opts.empty?
             scope = lambda do
-              scope_opts.inject(self) { |result, (method, arg)| result.send(method, arg) }
+              scope_opts.inject(self) do |result, (method, value)|
+                result.send(method, value)
+              end
             end
           end
 
-          [defined?(scope) ? scope : nil, opts]
+          [scope, opts]
         end
 
         def parse_options(opts)
           scope_opts = {}
-          [:order, :having, :select, :group, :limit, :offset, :readonly].each do |o|
-            scope_opts[o] = opts.delete(o) if opts[o]
+          [:order, :having, :select, :group, :limit, :offset, :readonly].each do |key|
+            if opts.key?(key)
+              scope_opts[key] = opts.delete(key)
+            end
           end
-          scope_opts[:where] = opts.delete(:conditions) if opts[:conditions]
-          scope_opts[:joins] = opts.delete(:include) if opts[:include]
-          scope_opts[:distinct] = opts.delete(:uniq) if opts[:uniq]
+
+          # Conditions become where in ActiveRecord 4+
+          scope_opts[:where] = opts.delete(:conditions) if opts.key?(:conditions)
+
+          # :include becomes :joins
+          scope_opts[:joins] = opts.delete(:include) if opts.key?(:include)
+
+          # :uniq becomes :distinct
+          scope_opts[:distinct] = opts.delete(:uniq) if opts.key?(:uniq)
 
           [scope_opts, opts]
         end
@@ -89,7 +80,7 @@ module RedmineContacts
 end
 
 if defined?(ActiveRecord::Base)
-  ActiveRecord::Base.extend RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods
+  ActiveRecord::Base.extend(RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods)
   unless ActiveRecord::Associations::ClassMethods.included_modules.include?(RedmineContacts::Patches::ActiveRecordBasePatch)
     ActiveRecord::Associations::ClassMethods.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
   end
