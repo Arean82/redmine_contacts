@@ -19,7 +19,9 @@
 
 require 'redmine_contacts/patches/compatibility/application_helper_patch'
 require 'redmine_contacts/helpers/contacts_helper'
-require 'redmine_contacts/helpers/crm_calendar_helper'
+# require 'redmine_contacts/helpers/crm_calendar_helper'
+require 'redmine_contacts/helpers/crm_calendar'
+
 
 # Plugins
 require 'acts_as_priceable/init'
