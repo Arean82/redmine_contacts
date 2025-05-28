@@ -11,7 +11,7 @@ module RedmineContacts
 
       module InstanceMethods
         def has_many_with_contacts(name, *args, &extension)
-          # If there is a :through option, call original has_many directly
+          # If there's a :through option in options, call original has_many directly
           if args.any? && args[0].is_a?(Hash) && args[0][:through]
             return has_many_without_contacts(name, *args, &extension)
           end
@@ -20,6 +20,7 @@ module RedmineContacts
           scope = nil
           options = {}
 
+          # If first arg is Proc, it's scope
           if args.first.is_a?(Proc)
             scope = args.shift
             options = args.first || {}
@@ -27,7 +28,12 @@ module RedmineContacts
             options = args.first || {}
           end
 
-          # Rails 4+ signature fix: pass options as keyword args
+          # If options include :through, do NOT split scope/options; call original directly
+          if options[:through]
+            # pass all args as is (scope must be nil here)
+            return has_many_without_contacts(name, *args, &extension)
+          end
+
           if ActiveRecord::VERSION::MAJOR >= 4
             if scope.nil?
               scope, options = build_scope_and_options(options)
