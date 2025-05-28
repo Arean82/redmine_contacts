@@ -30,31 +30,30 @@ module RedmineContacts
 
       module InstanceMethods
         def has_many_with_contacts(name, param2 = nil, *param3, &extension)
-          return has_many_without_contacts(name, param2, *param3, &extension) if param3 && param3.is_a?(Array) && param3[0] && param3[0][:through]
+          # If param3 has :through option, fallback to original has_many
+          if param3.any? && param3[0].is_a?(Hash) && param3[0][:through]
+            return has_many_without_contacts(name, param2, *param3, &extension)
+          end
 
           scope = nil
           options = {}
 
           if param2.nil?
             options = {}
+          elsif param2.is_a?(Proc)
+            scope = param2
+            options = param3.empty? ? {} : param3[0]
           else
-            if param2.is_a?(Proc)
-              scope = param2
-              options = param3.empty? ? {} : param3[0]
-            else
-              options = param2
-            end
+            options = param2
           end
 
           if ActiveRecord::VERSION::MAJOR >= 4
             scope, options = build_scope_and_options(options) if scope.nil?
 
             if scope
-              # Pass scope as second argument and options as keyword args
-              has_many_without_contacts(name, scope, **options, &extension)
+              has_many_without_contacts(name, scope, options, &extension)
             else
-              # No scope, pass only options as keyword args
-              has_many_without_contacts(name, **options, &extension)
+              has_many_without_contacts(name, options, &extension)
             end
           else
             has_many_without_contacts(name, options, &extension)
@@ -66,9 +65,10 @@ module RedmineContacts
 
           unless scope_opts.empty?
             scope = lambda do
-              scope_opts.inject(self) { |result, hash| result.send(*hash) }
+              scope_opts.inject(self) { |result, (method, arg)| result.send(method, arg) }
             end
           end
+
           [defined?(scope) ? scope : nil, opts]
         end
 
@@ -89,6 +89,12 @@ module RedmineContacts
 end
 
 if defined?(ActiveRecord::Base)
+  ActiveRecord::Base.extend RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods
+  unless ActiveRecord::Associations::ClassMethods.included_modules.include?(RedmineContacts::Patches::ActiveRecordBasePatch)
+    ActiveRecord::Associations::ClassMethods.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
+  end
+end
+
   ActiveRecord::Base.extend RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods
   unless ActiveRecord::Associations::ClassMethods.included_modules.include?(RedmineContacts::Patches::ActiveRecordBasePatch)
     ActiveRecord::Associations::ClassMethods.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
