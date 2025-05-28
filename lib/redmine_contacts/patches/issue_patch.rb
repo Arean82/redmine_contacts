@@ -18,7 +18,7 @@
 # along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
 
 require_dependency 'issue'
-require_dependency 'contact'
+# require_dependency 'contact'
 
 module RedmineContacts
   module Patches
