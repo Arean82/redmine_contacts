@@ -1,95 +1,32 @@
+# plugins/redmine_contacts/lib/redmine_contacts/patches/compatibility/active_record_base_patch.rb
+
 module RedmineContacts
-  module Patches
+  module Compatibility
     module ActiveRecordBasePatch
       def self.included(base)
-        base.send(:include, InstanceMethods)
         base.class_eval do
-          alias_method :has_many_without_contacts, :has_many
-          alias_method :has_many, :has_many_with_contacts
-        end
-      end
+          # Define a new has_many method that wraps the original one
+          class << self
+            alias_method :has_many_without_contacts, :has_many
 
-      module InstanceMethods
-        def has_many_with_contacts(name, *args, &extension)
-          # If there's a :through option in options, call original has_many directly
-          if args.any? && args[0].is_a?(Hash) && args[0][:through]
-            return has_many_without_contacts(name, *args, &extension)
-          end
-
-          # Separate scope and options based on argument types
-          scope = nil
-          options = {}
-
-          # If first arg is Proc, it's scope
-          if args.first.is_a?(Proc)
-            scope = args.shift
-            options = args.first || {}
-          else
-            options = args.first || {}
-          end
-
-          # If options include :through, do NOT split scope/options; call original directly
-          if options[:through]
-            # pass all args as is (scope must be nil here)
-            return has_many_without_contacts(name, *args, &extension)
-          end
-
-          # Fix: make sure scope is nil or Proc, never a Hash
-          # If scope is a Hash (incorrect), treat as options and set scope nil
-          if scope.is_a?(Hash)
-            options = scope
-            scope = nil
-          end
-
-          if ActiveRecord::VERSION::MAJOR >= 4
-            if scope.nil?
-              scope, options = build_scope_and_options(options)
-            end
-            has_many_without_contacts(name, scope, **options, &extension)
-          else
-            has_many_without_contacts(name, options, &extension)
-          end
-        end
-
-        private
-
-        def build_scope_and_options(options)
-          scope_opts, opts = parse_options(options)
-
-          scope = nil
-          unless scope_opts.empty?
-            scope = lambda do
-              scope_opts.inject(self) do |result, (method, value)|
-                result.send(method, value)
+            def has_many_with_contacts(name, scope = nil, **options, &extension)
+              # If scope is a Hash (like :through => :memberships), don't call `arity` on it directly
+              if scope.respond_to?(:arity)
+                if scope.arity == 0
+                  has_many_without_contacts(name, scope.call, **options, &extension)
+                else
+                  has_many_without_contacts(name, scope, **options, &extension)
+                end
+              else
+                has_many_without_contacts(name, scope, **options, &extension)
               end
             end
+
+            # Override has_many to use our custom method
+            alias_method :has_many, :has_many_with_contacts
           end
-
-          [scope, opts]
-        end
-
-        def parse_options(opts)
-          scope_opts = {}
-          [:order, :having, :select, :group, :limit, :offset, :readonly].each do |key|
-            if opts.key?(key)
-              scope_opts[key] = opts.delete(key)
-            end
-          end
-
-          scope_opts[:where] = opts.delete(:conditions) if opts.key?(:conditions)
-          scope_opts[:joins] = opts.delete(:include) if opts.key?(:include)
-          scope_opts[:distinct] = opts.delete(:uniq) if opts.key?(:uniq)
-
-          [scope_opts, opts]
         end
       end
     end
-  end
-end
-
-if defined?(ActiveRecord::Base)
-  ActiveRecord::Base.extend(RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods)
-  unless ActiveRecord::Associations::ClassMethods.included_modules.include?(RedmineContacts::Patches::ActiveRecordBasePatch)
-    ActiveRecord::Associations::ClassMethods.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
   end
 end
