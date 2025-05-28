@@ -25,7 +25,8 @@ require 'redmine_contacts/helpers/crm_calendar'
 
 # Plugins
 require 'acts_as_priceable/init'
-require 'contact_custom_field_format'
+#require 'contact_custom_field_format'
+require 'redmine/field_format/contact_format'
 require 'company_custom_field_format'
 
 require 'redmine_contacts/utils/thumbnail'
