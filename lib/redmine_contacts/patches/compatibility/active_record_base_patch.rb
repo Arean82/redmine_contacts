@@ -10,61 +10,49 @@ module RedmineContacts
       end
 
       module InstanceMethods
-        def has_many_with_contacts(name, param2 = nil, *param3, &extension)
-          # If options contain :through, use original has_many immediately
-          if param3.is_a?(Array) && param3[0] && param3[0][:through]
-            return has_many_without_contacts(name, param2, *param3, &extension)
-          end
+        def has_many_with_contacts(name, *args, &extension)
+          # Separate args into scope and options
+          # Rails has_many(name, scope = nil, **options, &block)
 
-          options = {}
-          scope = nil
-
-          if param2.nil?
-            options = {}
+          if args.first.is_a?(Proc)
+            scope = args.shift
           else
-            if param2.is_a?(Proc)
-              scope = param2
-              options = param3.empty? ? {} : param3[0]
-            else
-              options = param2
-            end
+            scope = nil
           end
 
-          if ActiveRecord::VERSION::MAJOR >= 4
-            scope, options = build_scope_and_options(options) if scope.nil?
-            if scope
-              # Pass options as keyword arguments
-              has_many_without_contacts(name, scope, **options, &extension)
-            else
-              has_many_without_contacts(name, **options, &extension)
-            end
-          else
-            has_many_without_contacts(name, options, &extension)
-          end
-        end
+          options = args.first || {}
 
-        def build_scope_and_options(options)
-          scope_opts, opts = parse_options(options)
+          # If options contain :through, call original immediately
+          return has_many_without_contacts(name, scope, **options, &extension) if options[:through]
 
-          unless scope_opts.empty?
-            scope = lambda do
-              scope_opts.inject(self) { |result, (method, arg)| result.send(method, arg) }
-            end
-          end
-
-          [defined?(scope) ? scope : nil, opts]
-        end
-
-        def parse_options(opts)
+          # Convert legacy options to modern style
           scope_opts = {}
-          [:order, :having, :select, :group, :limit, :offset, :readonly].each do |o|
-            scope_opts[o] = opts.delete(o) if opts[o]
-          end
-          scope_opts[:where] = opts.delete(:conditions) if opts[:conditions]
-          scope_opts[:joins] = opts.delete(:include) if opts[:include]
-          scope_opts[:distinct] = opts.delete(:uniq) if opts[:uniq]
+          scope_opts[:where]     = options.delete(:conditions) if options[:conditions]
+          scope_opts[:joins]     = options.delete(:include) if options[:include]
+          scope_opts[:distinct]  = options.delete(:uniq) if options[:uniq]
 
-          [scope_opts, opts]
+          [:order, :having, :select, :group, :limit, :offset, :readonly].each do |key|
+            scope_opts[key] = options.delete(key) if options.key?(key)
+          end
+
+          if scope_opts.any?
+            # Build scope proc applying the scope options as chained methods
+            scope = proc do
+              scope_opts.inject(all) do |relation, (method, arg)|
+                if arg.nil? || arg == true || arg == false
+                  relation.public_send(method)
+                else
+                  relation.public_send(method, arg)
+                end
+              end
+            end
+          end
+
+          if scope
+            has_many_without_contacts(name, scope, **options, &extension)
+          else
+            has_many_without_contacts(name, **options, &extension)
+          end
         end
       end
     end
@@ -72,8 +60,5 @@ module RedmineContacts
 end
 
 if defined?(ActiveRecord::Base)
-  ActiveRecord::Base.extend RedmineContacts::Patches::ActiveRecordBasePatch::InstanceMethods
-  unless ActiveRecord::Associations::ClassMethods.included_modules.include?(RedmineContacts::Patches::ActiveRecordBasePatch)
-    ActiveRecord::Associations::ClassMethods.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
-  end
+  ActiveRecord::Base.send(:include, RedmineContacts::Patches::ActiveRecordBasePatch)
 end
