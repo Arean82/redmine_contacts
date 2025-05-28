@@ -34,6 +34,13 @@ module RedmineContacts
             return has_many_without_contacts(name, *args, &extension)
           end
 
+          # Fix: make sure scope is nil or Proc, never a Hash
+          # If scope is a Hash (incorrect), treat as options and set scope nil
+          if scope.is_a?(Hash)
+            options = scope
+            scope = nil
+          end
+
           if ActiveRecord::VERSION::MAJOR >= 4
             if scope.nil?
               scope, options = build_scope_and_options(options)
