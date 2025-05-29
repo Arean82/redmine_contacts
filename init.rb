@@ -14,6 +14,7 @@ end
 
 
 require_relative 'lib/csv_importable'
+Rails.logger.info "CSVImportable defined? #{defined?(CSVImportable)}"
 
 
 CONTACTS_VERSION_NUMBER = '4.2.6'
