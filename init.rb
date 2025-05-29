@@ -6,6 +6,9 @@ requires_redmine_crm :version_or_higher => '0.0.51' rescue raise "\n\033[31mRedm
 require 'redmine'
 require_relative 'lib/csv_importable'
 
+require_relative 'lib/redmine_contacts/acts_as_priceable'
+ActiveRecord::Base.include(RedmineContacts::Acts::Priceable)
+
 CONTACTS_VERSION_NUMBER = '4.2.6'
 CONTACTS_VERSION_TYPE = "PRO version"
 
