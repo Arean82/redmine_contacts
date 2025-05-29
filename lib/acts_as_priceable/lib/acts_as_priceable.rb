@@ -1,5 +1,3 @@
-
-
 module RedmineContacts
   module Acts
     module Priceable
@@ -11,39 +9,34 @@ module RedmineContacts
         def acts_as_priceable(*args)
           priceable_options = args
           priceable_options << :price if priceable_options.empty?
-          priceable_methods = ""
-          priceable_options.each do |priceable_attr|
-            priceable_methods << %(
-              def #{priceable_attr.to_s}_to_s
+
+          priceable_methods = priceable_options.map do |attr|
+            %(
+              def #{attr}_to_s
                 object_price(
                   self, 
-                  :#{priceable_attr},
+                  :#{attr},
                   { 
                     :decimal_mark => ContactsSetting.decimal_separator,
                     :thousands_separator => ContactsSetting.thousands_delimiter
                   }
-                ) if self.respond_to?(:#{priceable_attr})
+                ) if respond_to?(:#{attr})
               end
             )
-          end
+          end.join("\n")
 
-          class_eval <<-EOV
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
             include RedmineCrm::MoneyHelper
             include RedmineContacts::Acts::Priceable::InstanceMethods
 
             #{priceable_methods}
-          EOV
-
+          RUBY
         end
       end
 
       module InstanceMethods
-#        def self.included(base)
-#          base.extend ClassMethods
-#        end
-
+        # No need to include anything here for now
       end
-
     end
   end
 end
