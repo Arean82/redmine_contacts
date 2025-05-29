@@ -6,7 +6,8 @@ requires_redmine_crm :version_or_higher => '0.0.51' rescue raise "\n\033[31mRedm
 require 'redmine'
 require_relative 'lib/csv_importable'
 
-require_relative 'redmine_contacts/acts/priceable'
+require_relative 'lib/redmine_contacts/acts/priceable'
+
 
 ActiveRecord::Base.include(RedmineContacts::Acts::Priceable)
 
