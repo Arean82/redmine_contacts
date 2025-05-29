@@ -8,7 +8,7 @@ require 'redmine_contacts/helpers/crm_calendar'
 
 # Plugins
 #require 'acts_as_priceable/init'
-require_relative 'redmine_contacts/acts_as_priceable/lib/acts_as_priceable'  # ✅ fixed path
+require_relative '../redmine_contacts/acts_as_priceable/lib/acts_as_priceable'  # ✅ fixed path
 #require 'contact_custom_field_format'
 require 'redmine_contacts/field_format/contact_format'
 require 'redmine_contacts/field_format/company_format'
