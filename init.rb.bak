@@ -19,7 +19,7 @@ Redmine::Plugin.register :redmine_contacts do
   url 'https://www.redmineup.com/pages/plugins/crm'
   author_url 'mailto:support@redmineup.com'
 
-  requires_redmine :version_or_higher => '4.0'
+  requires_redmine :version_or_higher => '2.6'
 
   settings :default => {
     :name_format => :lastname_firstname.to_s,

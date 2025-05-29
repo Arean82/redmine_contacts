@@ -65,6 +65,7 @@ module RedmineContacts
         end
 
       end
+
     end
   end
 end

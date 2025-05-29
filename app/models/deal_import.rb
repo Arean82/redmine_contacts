@@ -22,7 +22,7 @@ class DealImport
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   include ActiveModel::Validations
-  include CSVImportable
+  include CsvImportable
 
   attr_accessor :file, :project, :quotes_type
 

@@ -17,6 +17,7 @@ module RedmineContacts
           sprintf('%.2f', value).gsub('.', l(:general_csv_decimal_separator))
         when 'contact', 'company'
           Contact.where(id: value).first.to_s
+          
         else
           if value.is_a?(Array)
             value.map(&:to_s).join(', ')

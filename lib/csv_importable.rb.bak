@@ -1,5 +1,5 @@
 
-module CsvImportable
+module CSVImportable
   class << self; attr_accessor :klass end
 
   def persisted?

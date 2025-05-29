@@ -48,7 +48,6 @@ module NotesHelper
     return false if !obj || !obj.respond_to?(:attachments)
     options[:size] = options[:size].to_s || "100"
     size = options[:size]
-    size2x = size.to_i*2
     options[:size] = options[:size] + "x" + options[:size]
     # options[:max_width] = size
     # options[:max_heght] = size
@@ -65,10 +64,6 @@ module NotesHelper
                                         :action => 'contacts_thumbnail',
                                         :id => att_file,
                                         :size => size)
-      options[:srcset] = url_for(:controller => 'attachments',
-                                        :action => 'contacts_thumbnail',
-                                        :id => att_file,
-                                        :size => size2x) + " 2x"
 
       image_url = Redmine::Thumbnail.convert_available?  ? contacts_thumbnail_url : attachment_url
       s << link_to(image_tag(image_url, options), attachment_url, {:title => att_file.filename}) if (att_file.filesize < max_file_size || Redmine::Thumbnail.convert_available?)

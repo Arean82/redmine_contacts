@@ -1,0 +1,21 @@
+
+module Redmine
+  module FieldFormat
+    class CompanyFormat < ContactFormat
+      add 'company'
+
+      def label
+        'label_crm_company'
+      end
+
+      def target_class
+        @target_class ||= Contact
+      end
+
+      def edit_tag(view, tag_id, tag_name, custom_value, options = {})
+        options[:is_company] = true
+        super
+      end
+    end
+  end
+end
