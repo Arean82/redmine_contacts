@@ -14,7 +14,7 @@ class ContactsController < ApplicationController
   before_action :authorize_contacts, :only => [:edit, :update, :destroy]
   before_action :find_optional_project, :only => [:index, :contacts_notes, :edit_mails, :send_mails, :bulk_update]
 
-  accept_rss_auth :index, :show
+  # accept_rss_auth :index, :show
   accept_api_auth :index, :show, :create, :update, :destroy
 
   helper :attachments
