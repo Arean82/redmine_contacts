@@ -43,7 +43,7 @@ class DealsController < ApplicationController
   helper :crm_queries
   helper :notes
   helper :queries
-  helper :calendars
+  # helper :calendars
   include QueriesHelper
   include CrmQueriesHelper
   include WatchersHelper
