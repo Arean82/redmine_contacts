@@ -38,9 +38,9 @@ module RedmineContacts
       end
 
       module InstanceMethods
-        def self.included(base)
-          base.extend ClassMethods
-        end
+#        def self.included(base)
+#          base.extend ClassMethods
+#        end
 
       end
 
