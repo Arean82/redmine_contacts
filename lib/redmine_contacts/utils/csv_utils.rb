@@ -26,6 +26,7 @@ module RedmineContacts
         end
       rescue
         ''
+        end
       end
     end
   end
