@@ -245,32 +245,33 @@ class Deal < ActiveRecord::Base
     try(:contact).try(:address).try(:city)
   end
 
-  if Redmine::Plugin.load && Redmine::Plugin.installed?(:redmine_products) && Redmine::Plugin.find(:redmine_products).version >= '2.0.2'
-    def has_taxes?
-      !lines.map(&:tax).all? { |t| t == 0 || t.blank? }
-    end
+ if Redmine::Plugin.installed?(:redmine_products) && Redmine::Plugin.find(:redmine_products).version >= '2.0.2'
+   def has_taxes?
+     !lines.map(&:tax).all? { |t| t == 0 || t.blank? }
+   end
+ 
+   def has_discounts?
+     !lines.map(&:discount).all? { |t| t == 0 || t.blank? }
+   end
 
-    def has_discounts?
-      !lines.map(&:discount).all? { |t| t == 0 || t.blank? }
-    end
+   def tax_amount
+     lines.reject(&:marked_for_destruction?).sum(&:tax_amount).to_f
+   end
 
-    def tax_amount
-      lines.select { |l| !l.marked_for_destruction? }.inject(0) { |sum, l| sum + l.tax_amount }.to_f
-    end
+   def subtotal
+     lines.reject(&:marked_for_destruction?).sum(&:total).to_f
+   end
 
-    def subtotal
-      lines.select { |l| !l.marked_for_destruction? }.inject(0) { |sum, l| sum + l.total }.to_f
-    end
+   def total_units
+     lines.sum { |l| l.product.blank? ? 0 : l.quantity }
+   end
 
-    def total_units
-      lines.inject(0) { |sum, l| sum + (l.product.blank? ? 0 : l.quantity) }
-    end
+   def calculate_price
+     return true if lines.reject(&:marked_for_destruction?).empty?
+     self.price = subtotal + (ContactsSetting.tax_exclusive? ? tax_amount : 0)
+   end
+ end
 
-    def calculate_price
-      return true if lines.select { |l| !l.marked_for_destruction? }.empty?
-      self.price = subtotal + (ContactsSetting.tax_exclusive? ? tax_amount : 0)
-    end
-  end
 
   def info
     result = ''
