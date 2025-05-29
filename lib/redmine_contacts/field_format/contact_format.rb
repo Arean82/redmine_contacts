@@ -1,7 +1,7 @@
 
 module RedmineContacts
   module FieldFormat
-    class ContactFormat < RecordList
+    class ContactFormat < Redmine::FieldFormat::RecordList
       add 'contact'
       self.customized_class_names = nil
       self.multiple_supported = false
