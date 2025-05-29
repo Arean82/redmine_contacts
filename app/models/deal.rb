@@ -1,21 +1,5 @@
-# This file is a part of Redmine CRM (redmine_contacts) plugin,
-# customer relationship management plugin for Redmine
-#
-# Copyright (C) 2010-2019 RedmineUP
-# http://www.redmineup.com/
-#
-# redmine_contacts is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redmine_contacts is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
+
+
 
 class Deal < ActiveRecord::Base
   unloadable
@@ -33,17 +17,21 @@ class Deal < ActiveRecord::Base
   has_many :deals_issues, :dependent => :destroy
   has_many :issues, :through => :deals_issues
 
-  if Redmine::Plugin.load && Redmine::Plugin.installed?(:redmine_products) && Redmine::Plugin.find(:redmine_products).version >= '2.0.2'
-    has_many :lines, :class_name => 'ProductLine', :as => :container, :dependent => :delete_all
-    has_many :products, :through => :lines, :uniq => true, :select => "#{Product.table_name}.*, #{ProductLine.table_name}.position"
+  if Redmine::Plugin.installed?(:redmine_products)
+    plugin = Redmine::Plugin.find(:redmine_products)
+    if plugin.version >= '2.0.2'
+     has_many :lines, :class_name => 'ProductLine', :as => :container, :dependent => :delete_all
+     has_many :products, -> { select("#{Product.table_name}.*, #{ProductLine.table_name}.position").distinct }, through: :lines
 
-    accepts_nested_attributes_for :lines, :allow_destroy => true
-    safe_attributes 'lines_attributes'
-    acts_as_priceable :amount, :tax_amount, :subtotal, :total
+      accepts_nested_attributes_for :lines, allow_destroy: true
+      safe_attributes 'lines_attributes'
+      acts_as_priceable :amount, :tax_amount, :subtotal, :total
 
-    before_validation :assign_lines
-    before_save :calculate_price
+      before_validation :assign_lines
+      before_save :calculate_price
+    end
   end
+
 
   if ActiveRecord::VERSION::MAJOR >= 4
     has_and_belongs_to_many :related_contacts, lambda { order("#{Contact.table_name}.last_name, #{Contact.table_name}.first_name") }, :uniq => true, :class_name => 'Contact'
