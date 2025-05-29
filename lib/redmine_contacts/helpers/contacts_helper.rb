@@ -1,7 +1,7 @@
 
 
 module RedmineContacts
-  module Helper
+  module Helpers
       module ContactsHelper
       def contact_tag_url(tag_name, options = {})
         { :controller => 'contacts',
@@ -235,4 +235,5 @@ module RedmineContacts
   end
 end
 
-ActionView::Base.send :include, RedmineContacts::Helper
+#ActionView::Base.send :include, RedmineContacts::Helper
+ActionView::Base.send :include, RedmineContacts::Helpers::ContactsHelper
