@@ -2,7 +2,7 @@ module RedmineContacts
   module Liquid
     module Drops
 
-class ContactsDrop < Liquid::Drop
+class ContactsDrop < ::Liquid::Drop  # explicitly use the top-level Liquid::Drop
 
   def initialize(contacts)
     @contacts = contacts

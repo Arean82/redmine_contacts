@@ -2,7 +2,7 @@ module RedmineContacts
   module Liquid
     module Drops
 
-class DealsDrop < Liquid::Drop
+class DealsDrop < ::Liquid::Drop
 
   def initialize(deals)
     @deals = deals

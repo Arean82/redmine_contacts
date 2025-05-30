@@ -2,7 +2,7 @@ module RedmineContacts
   module Liquid
     module Drops
 
-class NotesDrop < Liquid::Drop
+class NotesDrop < ::Liquid::Drop
 
   def initialize(notes)
     @notes = notes
