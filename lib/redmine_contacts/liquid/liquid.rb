@@ -77,5 +77,4 @@ module RedmineContacts
     ::Liquid::Template.register_filter(RedmineContacts::Liquid::Filters)
 
   end
-  end
 end
