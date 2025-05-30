@@ -53,7 +53,8 @@ require 'redmine_contacts/hooks/views_users_hook'
 require 'redmine_contacts/hooks/views_custom_fields_hook'
 require 'redmine_contacts/hooks/controllers_time_entry_reports_hook'
 
-require 'redmine_contacts/liquid/liquid' if Object.const_defined?("Liquid") rescue false
+# require 'redmine_contacts/liquid/liquid' if Object.const_defined?("Liquid") rescue false
+require 'redmine_contacts/liquid/filters' if Object.const_defined?("Liquid") rescue false
 
 module RedmineContacts
   def self.companies_select
