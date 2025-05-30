@@ -9,11 +9,10 @@ module RedmineContacts
             base.send(:include, InstanceMethods)
             base.class_eval do
               unloadable
-              class << self
-                VISIBILITY_PRIVATE = 0
-                VISIBILITY_ROLES   = 1
-                VISIBILITY_PUBLIC  = 2
-              end
+              # Constants for visibility states
+              VISIBILITY_PRIVATE = 0
+              VISIBILITY_ROLES   = 1
+              VISIBILITY_PUBLIC  = 2
             end
           end
         end
@@ -28,15 +27,24 @@ module RedmineContacts
           end
 
           def is_public?
-            !is_private?
+            visibility == VISIBILITY_PUBLIC
           end
 
+          # Override visibility setter to ensure only valid values
           def visibility=(value)
-            self.is_public = value == VISIBILITY_PUBLIC
+            # Accept value either as integer or boolean
+            val = case value
+                  when true then VISIBILITY_PUBLIC
+                  when false then VISIBILITY_PRIVATE
+                  when Integer then value
+                  else VISIBILITY_PRIVATE
+                  end
+            write_attribute(:visibility, val)
           end
 
+          # Override visibility getter to read attribute
           def visibility
-            self.is_public ? VISIBILITY_PUBLIC : VISIBILITY_PRIVATE
+            read_attribute(:visibility).to_i
           end
         end
       end
