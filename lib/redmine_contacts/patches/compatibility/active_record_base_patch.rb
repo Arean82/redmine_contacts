@@ -1,5 +1,6 @@
 module RedmineContacts
   module Patches
+    module Compatibility
     module ActiveRecordBasePatch
       def has_many(name, *args, &extension)
         if args.first.is_a?(Proc)
@@ -41,6 +42,7 @@ module RedmineContacts
           super(name, **options, &extension)
         end
       end
+    end
     end
   end
 end
