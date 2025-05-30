@@ -2,7 +2,8 @@
 require 'fileutils'
 
 module RedmineContacts
-  module Thumbnail
+  module Utils
+  class Thumbnail
     extend Redmine::Utils::Shell
     include Redmine::Thumbnail
 
@@ -28,6 +29,6 @@ module RedmineContacts
       target
     end
 
-
+  end
   end
 end
