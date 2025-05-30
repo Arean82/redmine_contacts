@@ -1,21 +1,4 @@
-# This file is a part of Redmine CRM (redmine_contacts) plugin,
-# customer relationship management plugin for Redmine
-#
-# Copyright (C) 2010-2019 RedmineUP
-# http://www.redmineup.com/
-#
-# redmine_contacts is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redmine_contacts is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
+
 
 require "redmine_contacts/liquid/drops/contacts_drop"
 require "redmine_contacts/liquid/drops/deals_drop"
@@ -23,6 +6,7 @@ require "redmine_contacts/liquid/drops/notes_drop"
 require "redmine_contacts/liquid/drops/addresses_drop"
 
 module RedmineContacts
+  module Liquid
   module Liquid
     module Filters
       include RedmineCrm::MoneyHelper
@@ -93,5 +77,6 @@ module RedmineContacts
 
     ::Liquid::Template.register_filter(RedmineContacts::Liquid::Filters)
 
+  end
   end
 end
