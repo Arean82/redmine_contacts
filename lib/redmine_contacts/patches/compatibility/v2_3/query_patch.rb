@@ -1,43 +1,37 @@
-
-
 module RedmineContacts
   module Patches
     module Compatibility
       module V23
         module QueryPatch
+          VISIBILITY_PRIVATE = 0
+          VISIBILITY_ROLES   = 1
+          VISIBILITY_PUBLIC  = 2
+
           def self.included(base)
             base.send(:include, InstanceMethods)
             base.class_eval do
               unloadable
-              # Constants for visibility states
-              VISIBILITY_PRIVATE = 0
-              VISIBILITY_ROLES   = 1
-              VISIBILITY_PUBLIC  = 2
+              # Constants removed from here to fix dynamic constant assignment error
             end
           end
         end
 
         module InstanceMethods
-          VISIBILITY_PRIVATE = 0
-          VISIBILITY_ROLES   = 1
-          VISIBILITY_PUBLIC  = 2
-
           def is_private?
-            visibility == VISIBILITY_PRIVATE
+            visibility == QueryPatch::VISIBILITY_PRIVATE
           end
 
           def is_public?
-            visibility == VISIBILITY_PUBLIC
+            visibility == QueryPatch::VISIBILITY_PUBLIC
           end
 
           # Override visibility setter to ensure only valid values
           def visibility=(value)
-            # Accept value either as integer or boolean
             val = case value
-                  when true then VISIBILITY_PUBLIC
-                  when false then VISIBILITY_PRIVATE
+                  when true then QueryPatch::VISIBILITY_PUBLIC
+                  when false then QueryPatch::VISIBILITY_PRIVATE
                   when Integer then value
-                  else VISIBILITY_PRIVATE
+                  else QueryPatch::VISIBILITY_PRIVATE
                   end
             write_attribute(:visibility, val)
           end
