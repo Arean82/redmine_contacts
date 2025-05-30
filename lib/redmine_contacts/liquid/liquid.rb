@@ -7,7 +7,6 @@ require "redmine_contacts/liquid/drops/addresses_drop"
 
 module RedmineContacts
   module Liquid
-  module Liquid
     module Filters
       include RedmineCrm::MoneyHelper
 
@@ -75,7 +74,7 @@ module RedmineContacts
 
     end
 
-    ::Liquid::Template.register_filter(RedmineContacts::Liquid::Liquid::Filters)
+    ::Liquid::Template.register_filter(RedmineContacts::Liquid::Filters)
 
   end
   end
