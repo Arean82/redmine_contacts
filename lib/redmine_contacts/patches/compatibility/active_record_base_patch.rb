@@ -49,5 +49,5 @@ end
 
 # Defer patching until ActiveRecord is fully loaded
 ActiveSupport.on_load(:active_record) do
-  ActiveRecord::Base.singleton_class.prepend(RedmineContacts::Patches::ActiveRecordBasePatch)
+  ActiveRecord::Base.singleton_class.prepend(RedmineContacts::Patches::Compatibility::ActiveRecordBasePatch)
 end
