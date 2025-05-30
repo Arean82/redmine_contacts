@@ -15,6 +15,7 @@ module RedmineContacts
       end
     end
   end
+  end
 end
 
 unless ApplicationHelper.included_modules.include?(RedmineContacts::Patches::Compatibility::ApplicationHelperPatch)
