@@ -32,7 +32,7 @@ class ContactsDrop < ::Liquid::Drop  # explicitly use the top-level Liquid::Drop
 end
 
 
-class ContactDrop < Liquid::Drop
+class ContactDrop < ::Liquid::Drop
 
   delegate :id, :name, :first_name, :last_name, :middle_name, :company, :phones, :emails, :primary_email, :website, :skype_name, :birthday, :age, :background, :job_title, :is_company, :tag_list, :post_address, :to => :@contact
 

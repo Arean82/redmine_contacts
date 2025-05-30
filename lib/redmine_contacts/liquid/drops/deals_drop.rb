@@ -32,7 +32,7 @@ class DealsDrop < ::Liquid::Drop
 end
 
 
-class DealDrop < Liquid::Drop
+class DealDrop < ::Liquid::Drop
 
   delegate :id, :name, :created_on, :due_date, :price, :price_type, :currency, :background, :probability, :to => :@deal
 

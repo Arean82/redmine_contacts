@@ -32,7 +32,7 @@ class NotesDrop < ::Liquid::Drop
 end
 
 
-class NoteDrop < Liquid::Drop
+class NoteDrop < ::Liquid::Drop
 
   delegate :id, :subject, :content, :type_id, :to => :@note
 
