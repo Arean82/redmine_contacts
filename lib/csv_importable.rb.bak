@@ -85,8 +85,7 @@ private
   def open_import_source
     begin
       content = file.read
-      #FCSV.parse(content, :headers => true, :header_converters => [:downcase], :encoding => 'utf-8', :col_sep => guess_separator(force_utf8(content)), :quote_char => quotes_type)
-      CSV.parse(content, :headers => true, :header_converters => [:downcase], :encoding => 'utf-8', :col_sep => guess_separator(force_utf8(content)), :quote_char => quotes_type)
+      FCSV.parse(content, :headers => true, :header_converters => [:downcase], :encoding => 'utf-8', :col_sep => guess_separator(force_utf8(content)), :quote_char => quotes_type)
     rescue Exception => e
       Rails.logger.info $!.message
       Rails.logger.info $!.backtrace.join("\n")

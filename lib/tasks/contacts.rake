@@ -57,9 +57,12 @@ END_DESC
 
     task :load_default_data => :environment do
       include Redmine::I18n    #newly Added
-      DealStatus.create(:name  => l(:label_deal_status_pending), :status_type => DealStatus::OPEN_STATUS, :is_default => true, :color => "AAAAAA".hex)
-      DealStatus.create(:name  => l(:label_deal_status_won), :status_type => DealStatus::WON_STATUS, :is_default => false, :color => "008000".hex)
-      DealStatus.create(:name  => l(:label_deal_status_lost), :status_type => DealStatus::LOST_STATUS, :is_default => false, :color => "FF0000".hex)
+      DealStatus.create(:name  => l(:label_crm_deal_status_pending), :status_type => DealStatus::OPEN_STATUS, :is_default => true, :color => "AAAAAA".hex)
+      DealStatus.create(:name  => l(:label_crm_deal_status_won), :status_type => DealStatus::WON_STATUS, :is_default => false, :color => "008000".hex)
+      DealStatus.create(:name  => l(:label_crm_deal_status_lost), :status_type => DealStatus::LOST_STATUS, :is_default => false, :color => "FF0000".hex)
+#      DealStatus.create(:name  => l(:label_deal_status_pending), :status_type => DealStatus::OPEN_STATUS, :is_default => true, :color => "AAAAAA".hex)
+#      DealStatus.create(:name  => l(:label_deal_status_won), :status_type => DealStatus::WON_STATUS, :is_default => false, :color => "008000".hex)
+#      DealStatus.create(:name  => l(:label_deal_status_lost), :status_type => DealStatus::LOST_STATUS, :is_default => false, :color => "FF0000".hex)
     end
 
     desc <<-END_DESC

@@ -234,14 +234,14 @@ module RedmineContacts
         s <<  "<strong>#{@cached_label_phone}</strong>: #{phones}<br />".html_safe if contact.phones.any?
         s
       end
-
+    
       def link_to_contact(contact, options = {})
         s = ''
         html_options = {}
         html_options = { :class => 'icon icon-vcard' } if options[:icon] == true
         s << avatar_to(contact, :size => '16') if options[:avatar] == true
         s << link_to_source(contact, html_options)
-
+    
         s << "(#{contact.job_title}) " if (options[:job_title] == true) && !contact.job_title.blank?
         s << " #{l(:label_crm_at_company)} " if (options[:job_title] == true) && !(contact.job_title.blank? || contact.company.blank?)
         if (options[:company] == true) && contact.contact_company
@@ -252,7 +252,7 @@ module RedmineContacts
         s << "(#{l(:field_contact_tag_names)}: #{contact.tag_list.join(', ')}) " if (options[:tag_list] == true) && !contact.tag_list.blank?
         s.html_safe
       end
-
+    
       def note_type_icon(note)
         note_type_tag = ''
         case note.type_id

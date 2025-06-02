@@ -154,8 +154,7 @@ module RedmineContacts
               label: company.name,
               value: company.name
             }
-          end
-        end
+          end        end
       end
     end
   end

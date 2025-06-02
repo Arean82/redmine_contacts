@@ -164,7 +164,5 @@ end
 require File.dirname(__FILE__) + '/lib/redmine_contacts
 #require 'redmine_contacts'
 
-Redmineup::Settings.initialize_gem_settings
-Redmineup::Currency.add_admin_money_menu
-#RedmineCrm::Settings.initialize_gem_settings
-#RedmineCrm::Currency.add_admin_money_menu
+RedmineCrm::Settings.initialize_gem_settings
+RedmineCrm::Currency.add_admin_money_menu
