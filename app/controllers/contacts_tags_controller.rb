@@ -1,7 +1,7 @@
 # This file is a part of Redmine CRM (redmine_contacts) plugin,
 # customer relationship management plugin for Redmine
 #
-# Copyright (C) 2010-2019 RedmineUP
+# Copyright (C) 2010-2025 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_contacts is free software: you can redistribute it and/or modify
@@ -71,9 +71,12 @@ class ContactsTagsController < ApplicationController
 
   def merge
     if request.post? && params[:tag] && params[:tag][:name]
-      RedmineCrm::Tagging.transaction do
-        tag = RedmineCrm::Tag.where(:name => params[:tag][:name]).first || RedmineCrm::Tag.create(params[:tag])
-        RedmineCrm::Tagging.where(:tag_id => @tags.map(&:id)).update_all(:tag_id => tag.id)
+#      RedmineCrm::Tagging.transaction do
+      Redmineup::Tagging.transaction do
+        tag = Redmineup::Tag.where(:name => params[:tag][:name]).first || Redmineup::Tag.create(params[:tag])
+        Redmineup::Tagging.where(:tag_id => @tags.map(&:id)).update_all(:tag_id => tag.id)
+#        tag = RedmineCrm::Tag.where(:name => params[:tag][:name]).first || RedmineCrm::Tag.create(params[:tag])
+#        RedmineCrm::Tagging.where(:tag_id => @tags.map(&:id)).update_all(:tag_id => tag.id)
         @tags.select{|t| t.id != tag.id}.each do |t|
           t.destroy
           Contact.where("#{Contact.table_name}.cached_tag_list LIKE ?", '%' + t.name + '%').includes(:tags).each{|c| c.tag_list = c.all_tags_list; c.save}
@@ -86,12 +89,14 @@ class ContactsTagsController < ApplicationController
   private
 
   def bulk_find_tags
-    @tags = RedmineCrm::Tag.where(:id => params[:id] ? [params[:id]] : params[:ids])
+#    @tags = RedmineCrm::Tag.where(:id => params[:id] ? [params[:id]] : params[:ids])
+    @tags = Redmineup::Tag.where(:id => params[:id] ? [params[:id]] : params[:ids])
     raise ActiveRecord::RecordNotFound if @tags.empty?
   end
 
   def find_tag
-    @tag = RedmineCrm::Tag.find(params[:id])
+#    @tag = RedmineCrm::Tag.find(params[:id])
+    @tag = Redmineup::Tag.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render_404
   end

@@ -1,8 +1,9 @@
-
+# encoding: utf-8
 
 module RedmineContacts
   module Helpers
       module ContactsHelper
+      include AvatarsHelper if Redmine::VERSION.to_s >= '4.1'
       def contact_tag_url(tag_name, options = {})
         { :controller => 'contacts',
           :action => 'index',
@@ -82,7 +83,7 @@ module RedmineContacts
         l(:label_crm_countries).map { |k, v| [v, k.to_s] }.sort
       end
 
-      def select_contact_tag(name, contact, options = {})
+      def select_contact_tag(name, contacts, options = {})
         cross_project_contacts = ContactsSetting.cross_project_contacts? || !!options.delete(:cross_project_contacts)
         contacts = [contacts] unless contacts.is_a?(Array)
 
@@ -112,7 +113,7 @@ module RedmineContacts
               tabindex: 200
             )
           end
-    
+
           s << javascript_include_tag('attachments')
         end
 
@@ -173,7 +174,7 @@ module RedmineContacts
         obj_icon = obj.is_a?(Contact) ? (obj.is_company ? 'company.png' : 'person.png') : (obj.is_a?(Deal) ? 'deal.png' : 'unknown.png')
 
         return image_tag(obj_icon, options.merge(:plugin => 'redmine_contacts')) if ENV['NO_AVATAR']
-    
+
         if obj.is_a?(Deal)
           if obj.contact
             avatar_to(obj.contact, options)
@@ -182,6 +183,7 @@ module RedmineContacts
           end
         elsif obj.is_a?(Contact) && (avatar = obj.avatar) && avatar.readable?
           avatar_url = url_for :controller => 'attachments', :action => 'contacts_thumbnail', :id => avatar, :size => options[:size]
+          options[:srcset] = url_for(controller: 'attachments', action: 'contacts_thumbnail', id: avatar, size: size2x) + " 2x"
           if options[:full_size]
             link_to(image_tag(avatar_url, options), :controller => 'attachments', :action => 'show', :id => avatar, :filename => avatar.filename)
           else
@@ -287,4 +289,5 @@ module RedmineContacts
 end
 
 #ActionView::Base.send :include, RedmineContacts::Helper
-ActionView::Base.send :include, RedmineContacts::Helpers::ContactsHelper
+#ActionView::Base.send :include, RedmineContacts::Helpers::ContactsHelper
+ActionView::Base.send :include, RedmineContacts::Helper::CrmCalendarHelper

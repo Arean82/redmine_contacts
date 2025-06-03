@@ -1,7 +1,7 @@
 # This file is a part of Redmine CRM (redmine_contacts) plugin,
 # customer relationship management plugin for Redmine
 #
-# Copyright (C) 2010-2019 RedmineUP
+# Copyright (C) 2010-2025 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_contacts is free software: you can redistribute it and/or modify
@@ -51,8 +51,9 @@ class NotesController < ApplicationController
 
   def update
     @note.safe_attributes = params[:note]
+    @note.created_on = Time.parse(params[:note][:created_on]) if params[:note] && params[:note][:created_on]
     if @note.save
-      @note.note_time = params[:note][:note_time] if params[:note] && params[:note][:note_time]
+#      @note.note_time = params[:note][:note_time] if params[:note] && params[:note][:note_time]
       attachments = Attachment.attach_files(@note, (params[:attachments] || (params[:note] && params[:note][:uploads])))
       render_attachment_warning_if_needed(@note)
       flash[:notice] = l(:notice_successful_update)
@@ -72,7 +73,8 @@ class NotesController < ApplicationController
     @note = Note.new
     @note.safe_attributes = params[:note]
     @note.source = @note_source
-    @note.note_time = params[:note][:note_time] if params[:note] && params[:note][:note_time]
+    @note.created_on = Time.parse(params[:note][:created_on]) if params[:note] && params[:note][:created_on] 
+#    @note.note_time = params[:note][:note_time] if params[:note] && params[:note][:note_time]
     @note.author = User.current
     if @note.save
       attachments = Attachment.attach_files(@note, (params[:attachments] || (params[:note] && params[:note][:uploads])))

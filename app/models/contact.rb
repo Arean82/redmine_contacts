@@ -1,3 +1,4 @@
+
 class Contact < ActiveRecord::Base
   unloadable
   include Redmine::SafeAttributes

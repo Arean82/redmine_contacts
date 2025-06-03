@@ -1,28 +1,12 @@
-# This file is a part of Redmine CRM (redmine_contacts) plugin,
-# customer relationship management plugin for Redmine
-#
-# Copyright (C) 2010-2019 RedmineUP
-# http://www.redmineup.com/
-#
-# redmine_contacts is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redmine_contacts is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
+# Unified version of ContactsProjectsController combining paid (RedmineUP) and extended free functionality
 
 class ContactsProjectsController < ApplicationController
   unloadable
 
   before_action :find_optional_project, :find_contact
-  before_action :find_related_project, only: [:destroy, :create]
+  before_action :find_related_projects, only: [:destroy, :create]
   before_action :check_count, only: :destroy
+  before_action :uniqlize_projects, only: [:destroy, :create]
 
   accept_api_auth :create, :destroy
 
@@ -35,11 +19,14 @@ class ContactsProjectsController < ApplicationController
       format.js
     end
   rescue ::ActionController::RedirectBackError
-    render text: 'Project added.', layout: true
+    render plain: 'Project added.', layout: true
   end
 
   def create
-    @contact.projects << @related_project unless @contact.projects.include?(@related_project)
+    @related_projects.each do |project|
+      @contact.projects << project unless @contact.projects.include?(project)
+    end
+
     if @contact.save
       respond_to do |format|
         format.html { redirect_to :back }
@@ -56,7 +43,10 @@ class ContactsProjectsController < ApplicationController
   end
 
   def destroy
-    @contact.projects.delete(@related_project)
+    @related_projects.each do |project|
+      @contact.projects.delete(project)
+    end
+
     respond_to do |format|
       format.html { redirect_to :back }
       format.js { render action: 'new' }
@@ -66,9 +56,14 @@ class ContactsProjectsController < ApplicationController
 
   private
 
-  def find_related_project
-    @related_project = Project.find((params[:project] && params[:project][:id]) || params[:id])
-    raise Unauthorized unless User.current.allowed_to?(:edit_contacts, @related_project)
+  def find_related_projects
+    raw_ids = Array(params.dig(:project, :id) || params[:id] || params[:project_id])
+    @related_projects = Project.where(id: raw_ids).or(Project.where(identifier: raw_ids)).to_a
+
+    raise ActiveRecord::RecordNotFound if @related_projects.blank?
+    unless @related_projects.all? { |p| User.current.allowed_to?(:edit_contacts, p) }
+      raise Unauthorized
+    end
   rescue ActiveRecord::RecordNotFound
     render_404
   end
@@ -82,5 +77,9 @@ class ContactsProjectsController < ApplicationController
     raise Unauthorized unless @contact.editable?
   rescue ActiveRecord::RecordNotFound
     render_404
+  end
+
+  def uniqlize_projects
+    @contact.projects = @contact.projects.uniq
   end
 end

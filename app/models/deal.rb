@@ -1,3 +1,4 @@
+
 class Deal < ActiveRecord::Base
   unloadable
   include Redmine::SafeAttributes

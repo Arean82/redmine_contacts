@@ -1,22 +1,3 @@
-# This file is a part of Redmine CRM (redmine_contacts) plugin,
-# customer relationship management plugin for Redmine
-#
-# Copyright (C) 2010-2025 RedmineUP
-# http://www.redmineup.com/
-#
-# redmine_contacts is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redmine_contacts is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redmine_contacts.  If not, see <http://www.gnu.org/licenses/>.
-
 require_dependency 'auto_completes_controller'
 
 module RedmineContacts
@@ -26,12 +7,18 @@ module RedmineContacts
         base.send(:include, InstanceMethods)
 
         base.class_eval do
+          include ActionView::Helpers::AssetTagHelper
+          include ActionView::Helpers::SanitizeHelper
+          include ApplicationHelper
+          include Helper::CrmCalendarHelper
+          include ERB::Util
         end
       end
 
       module InstanceMethods
         DEFAULT_LIMIT = 10
         DEFAULT_CONTACTS_LIMIT = 30
+
         def deals
           @deals = []
           q = (params[:q] || params[:term]).to_s.strip
@@ -47,7 +34,7 @@ module RedmineContacts
             @deals << deal if deal.present?
 
             deals_by_name = scope
-            q.split(' ').collect { |word| deals_by_name = deals_by_name.live_search(word) }
+            q.split(' ').each { |word| deals_by_name = deals_by_name.live_search(word) }
             @deals += deals_by_name.order("#{Deal.table_name}.name")
 
             scope = scope.live_search_with_contact(q)
@@ -55,21 +42,22 @@ module RedmineContacts
 
           @deals += scope.order("#{Deal.table_name}.name")
           @deals.uniq! { |deal| deal.id }
-          @deals = @deals.take(params[:limit] || DEFAULT_LIMIT)
-          render :layout => false, :partial => 'deals'
-       end
+          @deals = @deals.take(params[:limit].to_i > 0 ? params[:limit].to_i : DEFAULT_LIMIT)
+
+          render partial: 'deals', layout: false
+        end
 
         def contact_tags
           @name = params[:q].to_s
-          @tags = Contact.available_tags :name_like => @name, limit: DEFAULT_LIMIT
-          render :layout => false, :partial => 'crm_tag_list'
+          @tags = Contact.available_tags(name_like: @name, limit: DEFAULT_LIMIT)
+          render json: format_crm_tags_json(@tags)
         end
 
         def taggable_tags
           klass = Object.const_get(params[:taggable_type].camelcase)
           @name = params[:q].to_s
-          @tags = klass.all_tag_counts(:conditions => ["#{RedmineCrm::Tag.table_name}.name LIKE ?", "%#{@name}%"], :limit => 10)
-          render :layout => false, :partial => 'crm_tag_list'
+          @tags = klass.all_tag_counts(conditions: ["#{Redmineup::Tag.table_name}.name LIKE ?", "%#{@name}%"], limit: 10)
+          render json: format_crm_tags_json(@tags)
         end
 
         def contacts
@@ -80,37 +68,41 @@ module RedmineContacts
           scope = scope.companies if params[:is_company]
           scope = scope.joins(:projects).where(Contact.visible_condition(User.current))
           scope = Rails.version >= '5.1' ? scope.distinct : scope.uniq
-          q.split(' ').collect { |search_string| scope = scope.live_search(search_string.gsub(/[\(\)]/, '')) } unless q.blank?
+
+          unless q.blank?
+            q.split(' ').each do |search_string|
+              scope = scope.live_search(search_string.gsub(/[\(\)]/, ''))
+            end
+          end
+
           scope = scope.by_project(@project) if @project
-          @contacts = scope.to_a.sort! { |x, y| x.name <=> y.name }
-          render layout: false, partial: params[:multiaddress] ? 'multiaddress_contacts' : 'contacts'
+          @contacts = scope.to_a.sort_by(&:name)
+
+          render json: params[:multiaddress] ? format_multiaddress_contacts_json(@contacts) : format_contacts_json(@contacts)
         end
 
         def companies
           @companies = []
           q = (params[:q] || params[:term]).to_s.strip
           if q.present?
-            scope = Contact.joins(:projects).where({})
-            scope = scope.limit(params[:limit] || DEFAULT_CONTACTS_LIMIT)
-            scope = scope.includes(:avatar)
+            scope = Contact.joins(:projects).includes(:avatar).limit(params[:limit] || DEFAULT_CONTACTS_LIMIT)
             scope = scope.by_project(@project) if @project
             scope = scope.where('LOWER(first_name) LIKE LOWER(?)', "%#{q}%") unless q.blank?
-#            scope = scope.where('LOWER(first_name) LIKE LOWER(?)', "#{q}%") unless q.blank?
             @companies = scope.visible.companies.order("#{Contact.table_name}.first_name")
           end
+
           render json: format_companies_json(@companies)
-#          render :layout => false, :partial => 'companies'
         end
 
         private
 
         def format_crm_tags_json(tags)
-          tags.collect do |tag|
+          tags.map { |tag|
             {
               id: tag.name,
               text: tag.name
             }
-          end
+          }
         end
 
         def format_contacts_json(contacts)
@@ -128,9 +120,8 @@ module RedmineContacts
         end
 
         def format_multiaddress_contacts_json(contacts)
-          @contacts.inject([]) do |collector, contact|
-            contact_emails = contact.emails.empty? ? [' '] : contact.emails
-            collector + contact_emails.map do |email|
+          contacts.flat_map do |contact|
+            (contact.emails.presence || [' ']).map do |email|
               {
                 id: email.blank? ? contact.id : email,
                 text: contact.name_with_company,

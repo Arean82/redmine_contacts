@@ -1,5 +1,4 @@
 
-
 require 'net/imap'
 require 'net/pop'
 require 'openssl'
@@ -9,7 +8,7 @@ module RedmineContacts
   module Utils
     class CheckMail
 	  class << self
-	
+
 		def check_imap(mailer, imap_options={}, options={})
 			host = imap_options[:host] || '127.0.0.1'
 			port = imap_options[:port] || '143'
@@ -17,20 +16,21 @@ module RedmineContacts
 			ssl_certs = imap_options[:ssl_certs]
 			verify_ssl = imap_options[:verify_ssl].nil? ? true : imap_options[:verify_ssl]
 			folder = imap_options[:folder] || 'INBOX'
-	
+
 			Timeout::timeout(15) do
 			@imap = Net::IMAP.new(host, port, ssl, ssl_certs, verify_ssl)
 			@imap.login(imap_options[:username], imap_options[:password]) unless imap_options[:username].nil?
-			end
-	
+
+	        end
+
 			@imap.select(folder)
 			msg_count = 0
-	
+
 			@imap.uid_search(['NOT', 'SEEN']).each do |uid|
 			msg = @imap.uid_fetch(uid,'RFC822')[0].attr['RFC822']
 			logger.info "ContactsMailHandler: Receiving message #{uid}" if logger && logger.info?
 			msg_count += 1
-	
+
 			if mailer.receive(msg, options)
 				logger.info "ContactsMailHandler: Message #{uid} successfully received" if logger && logger.info?
 				if imap_options[:move_on_success] && imap_options[:move_on_success] != folder
@@ -53,14 +53,14 @@ module RedmineContacts
 			@imap.disconnect
 			end
 		end
-	
+
 		def check_pop3(mailer, pop_options={}, options={})
-	
+
 			host = pop_options[:host] || '127.0.0.1'
 			port = pop_options[:port] || '110'
 			apop = (pop_options[:apop].to_s == '1')
 			delete_unprocessed = (pop_options[:delete_unprocessed].to_s == '1')
-	
+
 			pop = Net::POP3.APOP(apop).new(host,port)
 			pop.enable_ssl(OpenSSL::SSL::VERIFY_NONE) if pop_options[:ssl]
 			logger.info "ContactsMailHandler: Connecting to #{host}..." if logger && logger.info?

@@ -1,5 +1,4 @@
 
-
 module RedmineContacts
   module Patches
     module Compatibility

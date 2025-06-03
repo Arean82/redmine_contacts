@@ -12,9 +12,9 @@ module RedmineContacts
     # Generates a thumbnail for the source image to target
     def self.generate(source, target, size)
       return nil unless Redmine::Thumbnail.convert_available?
-      unless File.exists?(target)
+      unless File.exist?(target)
         directory = File.dirname(target)
-        unless File.exists?(directory)
+        unless File.exist?(directory)
           FileUtils.mkdir_p directory
         end
         size_option = "#{size}x#{size}^"

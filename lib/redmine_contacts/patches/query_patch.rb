@@ -1,3 +1,4 @@
+
 require_dependency 'query'
 
 module RedmineContacts
@@ -33,7 +34,6 @@ module RedmineContacts
         def add_filter_with_contacts(field, operator, values = nil)
           add_filter_without_contacts(field, operator, values)
           return unless available_filters[field]
-
           initialize_values_for_select2(field, values)
           true
         end
@@ -50,7 +50,7 @@ module RedmineContacts
         end
 
         def ids_to_names_with_ids(ids, model)
-          ids.blank? ? [] : model.visible.where(id: ids).map { |r| [r.name, r.id.to_s] }
+          ids.blank? ? [] : model.visible.where(:id => ids).map { |r| [r.name, r.id.to_s] }
         end
       end
     end

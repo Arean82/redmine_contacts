@@ -1,7 +1,7 @@
 # This file is a part of Redmine CRM (redmine_contacts) plugin,
 # customer relationship management plugin for Redmine
 #
-# Copyright (C) 2010-2019 RedmineUP
+# Copyright (C) 2010-2025 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_contacts is free software: you can redistribute it and/or modify
@@ -32,27 +32,24 @@ class ContactsDuplicatesController < ApplicationController
   end
 
   def duplicates
-    search_first_name = params[:contact][:first_name] if params[:contact] && !params[:contact][:first_name].blank?
-    search_last_name = params[:contact][:last_name] if params[:contact] && !params[:contact][:last_name].blank?
-    search_middle_name = params[:contact][:middle_name] if params[:contact] && !params[:contact][:middle_name].blank?
-
-    @contact = (Contact.find(params[:contact_id]) if !params[:contact_id].blank?) || Contact.new
-    @contact.first_name = search_first_name || ''
-    @contact.last_name = search_last_name || ''
-    @contact.middle_name = search_middle_name || ''
+    @contact = Contact.find_by(id: params[:contact_id].presence) || Contact.new
+    @contact.first_name = params.dig(:contact, :first_name).to_s
+    @contact.last_name = params.dig(:contact, :last_name).to_s
+    @contact.middle_name = params.dig(:contact, :middle_name).to_s
     respond_to do |format|
       format.html { render :partial => 'duplicates', :layout => false if request.xhr? }
     end
   end
 
   def merge
-    @duplicate.notes << @contact.notes
-    @duplicate.deals << @contact.deals
-    @duplicate.related_deals << @contact.related_deals
-    @duplicate.issues << @contact.issues
-    @duplicate.projects << @contact.projects
-    @duplicate.email = (@duplicate.emails | @contact.emails).join(', ')
-    @duplicate.phone = (@duplicate.phones | @contact.phones).join(', ')
+	@duplicate.notes += @contact.notes
+	@duplicate.deals += @contact.deals
+	@duplicate.related_deals += @contact.related_deals
+	@duplicate.issues += @contact.issues
+	@duplicate.projects += @contact.projects
+
+	@duplicate.email = (@duplicate.emails | @contact.emails).join(', ')
+	@duplicate.phone = (@duplicate.phones | @contact.phones).join(', ')
 
     call_hook(:controller_contacts_duplicates_merge, { :params => params, :duplicate => @duplicate, :contact => @contact })
     @duplicate.tag_list = @duplicate.tag_list | @contact.tag_list

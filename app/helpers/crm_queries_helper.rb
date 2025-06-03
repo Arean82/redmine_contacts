@@ -3,7 +3,7 @@
 # This file is a part of Redmine CRM (redmine_contacts) plugin,
 # customer relationship management plugin for Redmine
 #
-# Copyright (C) 2010-2019 RedmineUP
+# Copyright (C) 2010-2025 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_contacts is free software: you can redistribute it and/or modify
@@ -58,7 +58,8 @@ module CrmQueriesHelper
     @year ||= Date.today.year
     @month ||= Date.today.month
 
-    @calendar = RedmineContacts::Helpers::CrmCalendar.new(Date.civil(@year, @month, 1), options)
+    @calendar = RedmineContacts::Helpers::CrmCalendarHelper::CrmCalendar.new(Date.civil(@year, @month, 1), options)
+#    @calendar = RedmineContacts::Helpers::CrmCalendar.new(Date.civil(@year, @month, 1), options)
   end
 
   def sidebar_crm_queries(query_class)

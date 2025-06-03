@@ -1,7 +1,7 @@
 # This file is a part of Redmine CRM (redmine_contacts) plugin,
 # customer relationship management plugin for Redmine
 #
-# Copyright (C) 2010-2019 RedmineUP
+# Copyright (C) 2010-2025 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_contacts is free software: you can redistribute it and/or modify
@@ -31,11 +31,12 @@ class Address < ActiveRecord::Base
   scope :business, lambda { where(:address_type => 'business') }
   scope :billing, lambda { where(:address_type => 'billing') }
   scope :shipping, lambda { where(:address_type => 'shipping') }
+  scope :visible,  lambda { all }
 
   before_save :populate_full_address
 
   def country
-    @country ||= l(:label_crm_countries)[country_code.to_sym].to_s unless country_code.blank?
+    l(:label_crm_countries)[country_code.to_sym].to_s unless country_code.blank?
   end
 
   def blank?
